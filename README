@@ -1,0 +1,5 @@
+ASMIARCH = Another Stupid Minimalistic/Mimetic Installer ARCH
+
+
+$ loadkeys es
+$ scp -pr toni@192.168.56.101:~/asmiarch .

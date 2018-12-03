@@ -1,0 +1,26 @@
+"*":
+  core:
+    autoHideMenuBar: true
+    telemetryConsent: "no"
+  editor:
+    fontSize: 19
+    preferredLineLength: 77
+    showIndentGuide: true
+    softWrap: true
+    softWrapAtPreferredLineLength: true
+    tabLength: 2
+    tabType: "soft"
+  "exception-reporting":
+    userId: "cd7352fd-2783-4c38-a75c-8bc672266046"
+  minimap:
+    disablePythonDocLinks: true
+  welcome:
+    showOnStartup: false
+".python.source":
+  editor:
+    autoIndentOnPaste: false
+    commentStart: "# "
+    decreaseIndentPattern: "^\\s*(elif|else|except|finally)\\b.*:"
+    increaseIndentPattern: "^\\s*(class|def|elif|else|except|finally|for|if|try|with|while)\\b.*:\\s*$"
+    softTabs: true
+    tabLength: 2
