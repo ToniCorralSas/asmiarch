@@ -24,6 +24,7 @@ UEFI = False
 def configure_keyboard_language():
   command_list = [
     "loadkeys es", \
+    "timedatectl set-ntp true", \
     '#sed -i "s/#es_ES.UTF-8/es_ES.UTF-8/g" /etc/locale.gen', \
     'sed -i "s/#es_ES ISO-8859-1/es_ES ISO-8859-1/g" /etc/locale.gen', \
     '#sed -i "s/#en_US.UTF-8/en_US.UTF-8/g" /etc/locale.gen', \
@@ -121,8 +122,10 @@ def disk_partitioning():
 
 
 def enable_dhcp():
+  """
+  THIS ONLY WORK NOW FOR A VIRTUAL MACHINE!!!
+  """
   # https://www.youtube.com/watch?v=sZrTssGN3RQ
-  # NOW ONLY FOR VIRTUAL MACHINE!!!
 
   command = "arch-chroot /mnt /bin/bash -c 'ip link'"
   print(command)
@@ -198,9 +201,6 @@ def installation():
   #sddm()
   #lightdm()
 
-  f = open("/mnt/home/toni/.yaourtrc", "w")
-  f.write("EXPORT=2\n")
-  f.close()
   command = "umount -R /mnt"
   print(command)
   subprocess.check_output(command, shell=True)
@@ -258,9 +258,9 @@ def last_steps():
   # make alias commands for system upgrades in .bashrc
   f = open("/mnt/home/toni/.bashrc", "a")
   f.write("alias actualizar='sudo pacman -Syyu; " \
-          "yaourt -Syyu --devel --aur'\n")
+          "yaourt -Syyu'\n")
   f.write("alias actualizar_auto='sudo pacman -Syyu --noconfirm; " \
-          "yaourt -Syyu --noconfirm --devel --aur'\n")
+          "yay -Syyu --noconfirm'\n")
   f.write("alias huerfanos='sudo pacman -Rsdn $(pacman -Qqdt)'\n")
   f.close()
 
@@ -277,7 +277,7 @@ def last_steps():
   change_string_in_file("/mnt/etc/sudoers", \
                         "# %wheel ALL=(ALL) NOPASSWD: ALL\n", \
                         "Cmnd_Alias  PACMAN = /usr/bin/pacman, " \
-                        "/usr/bin/yaourt, /usr/bin/aurman\n" \
+                        "/usr/bin/yay\n" \
                         "%wheel ALL=(ALL) NOPASSWD: PACMAN\n")
 
   # upgrade and update repositories
@@ -294,46 +294,17 @@ def last_steps():
             "--noconfirm --needed'"
   print(command)
   subprocess.check_output(command, shell=True)
-  command = "arch-chroot /mnt /bin/su - toni -c 'cd /home/toni/; " \
-            "git clone https://aur.archlinux.org/yaourt.git'"
+  command = "arch-chroot /mnt /bin/su - toni -c '" \
+            "git clone https://aur.archlinux.org/yay.git /home/toni/yay'"
   print(command)
   subprocess.check_output(command, shell=True)
-  command = "arch-chroot /mnt /bin/su - toni -c 'cd /home/toni/yaourt/; " \
+  command = "arch-chroot /mnt /bin/su - toni -c 'cd /home/toni/yay/; " \
             "makepkg -si --noconfirm'"
   print(command)
   subprocess.check_output(command, shell=True)
-  command = "arch-chroot /mnt /bin/su - toni -c 'rm -rf /home/toni/yaourt/'"
+  command = "arch-chroot /mnt /bin/su - toni -c 'rm -rf /home/toni/yay/'"
   print(command)
   subprocess.check_output(command, shell=True)
-  # make .yaourtrc
-  # "https://simplyian.com/2015/02/15/" \
-  # "How-to-skip-all-Yaourt-prompts-on-Arch-Linux/"
-  f = open("/mnt/home/toni/.yaourtrc", "w")
-  f.write("NOCONFIRM=1\n")
-  f.write("BUILD_NOCONFIRM=1\n")
-  f.write("EDITFILES=0\n")
-  #f.write("EXPORT=2\n")
-  f.write('TMPDIR="/home/toni/"')
-  f.close()
-
-  # install pacaur
-  command = "arch-chroot /mnt /bin/bash -c 'sudo -u toni " \
-            'yaourt --m-arg "--skipchecksums --skippgpcheck" -S pacaur ' \
-            "--noconfirm'"
-  print(command)
-  subprocess.check_output(command, shell=True)
-  command = "arch-chroot /mnt /bin/bash -c 'sudo -u toni " \
-            'yaourt --m-arg "--skipchecksums --skippgpcheck" -S aurman ' \
-            "--noconfirm'"
-  print(command)
-  subprocess.check_output(command, shell=True)
-  """
-  command = "arch-chroot /mnt /bin/bash -c 'sudo -u toni " \
-            "aurman --needed --noconfirm --noedit --skip_news " \
-            "--skip_new_locations --pgp_fetch -S ccat'"
-  print(command)
-  subprocess.check_output(command, shell=True)
-  """
 
   # https://wiki.archlinux.org/index.php/GRUB/EFI_examples
   if UEFI:
@@ -440,7 +411,7 @@ def root_configuration():
     # create password
     'echo -e "root\\nroot" | passwd root', \
     # create user
-    "useradd -m -g users -G wheel,storage,power -s /bin/bash toni", \
+    "useradd -m -g users -G storage,power,users,wheel -s /bin/bash toni", \
     'echo -e "toni\\ntoni" | passwd toni', \
     # install grub
     "pacman -S grub --noconfirm", \
@@ -458,12 +429,9 @@ def root_configuration():
 
 
 def xorg():
-  command = "arch-chroot /mnt /bin/bash -c 'pacman -S xorg --noconfirm " \
-            "--needed'"   # option to avoid reinstall up-to-date packages
-  print(command)
-  subprocess.check_output(command, shell=True)
-  command = "arch-chroot /mnt /bin/bash -c 'pacman -S xterm xorg-xclock " \
-            "xorg-twm xorg-xinit --noconfirm --needed'"
+  # --needed -> option to avoid reinstall up-to-date packages
+  command = "arch-chroot /mnt /bin/bash -c 'pacman -S xorg xorg-server "
+            "--noconfirm --needed'"
   print(command)
   subprocess.check_output(command, shell=True)
 
